@@ -1,0 +1,970 @@
+{
+  "name": "การบ้าน 1 scrapping https://www.thaicert.or.th/category/cybernews/",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -940,
+        640
+      ],
+      "id": "bab515d0-603c-495d-a7ed-a02142c56b7b",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.my_URL }}",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"User-Agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36\",\n  \"Accept\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\",\n  \"Accept-Encoding\": \"gzip, deflate, br\",\n  \"Accept-Language\": \"en-US,en;q=0.9\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -560,
+        640
+      ],
+      "id": "5a06bd73-b233-4ff8-8245-cbc0f4f9ddfb",
+      "name": "Scrap 1"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit?gid=1806566961#gid=1806566961",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 415211407,
+          "mode": "list",
+          "cachedResultName": "test append_V2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit#gid=415211407"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Loop Over Items').item.json.id }}",
+            "content": "={{ $json.merged_content }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1460,
+        900
+      ],
+      "id": "5cdc21af-5f16-464a-b7d8-2364031d92ec",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "33F6GyRpVDU9pkkz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "cssSelector": "div.entry-content p",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        900
+      ],
+      "id": "e2e66be9-4d1c-4a90-b9d7-d5db52d04739",
+      "name": "Extract3_content"
+    },
+    {
+      "parameters": {
+        "jsCode": "// วิธีที่ 2: หากข้อมูลมาจาก Extract3_content node\nconst allItems = $input.all();\nlet mergedText = '';\n\nallItems.forEach(item => {\n  // ลองดูโครงสร้างข้อมูลจริง\n  console.log('Item structure:', JSON.stringify(item.json, null, 2));\n  \n  // หากข้อมูลเป็น array ที่ไม่มีชื่อ key\n  const keys = Object.keys(item.json);\n  keys.forEach(key => {\n    if (Array.isArray(item.json[key])) {\n      mergedText += item.json[key].join('\\n') + '\\n';\n    }\n  });\n});\n\nreturn [\n  {\n    json: {\n      merged_content: mergedText.trim()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        900
+      ],
+      "id": "97d55664-3fe4-409f-bc06-63ec035723c8",
+      "name": "merge_array_content"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        740,
+        880
+      ],
+      "id": "28765e40-a896-4939-a577-a08f39700d9e",
+      "name": "Scrap2 ดึงข้อความจาก link content"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"my_URL\": \"https://www.thaicert.or.th/category/cybernews/\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -760,
+        640
+      ],
+      "id": "d9a2aaa9-1748-49a1-8f21-7b67b14014f1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "cssSelector": "h2.entry-title a",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -860,
+        1020
+      ],
+      "id": "344aa569-bf12-4aa1-b2b9-c920edbdcc39",
+      "name": "extract1_topic"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "cssSelector": "h2.entry-title a",
+              "returnValue": "attribute",
+              "attribute": "href",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -860,
+        1280
+      ],
+      "id": "938f3b0b-684c-4dfd-ae79-86df5ffba135",
+      "name": "extract1_topic_url"
+    },
+    {
+      "parameters": {
+        "jsCode": "// รับข้อมูลจาก HTML extract node\nconst inputData = $input.all()[0].json;\n\n// ตัวแปร urls อาจอยู่ในรูปแบบต่างๆ ให้ตรวจสอบก่อน\nlet urls;\n\n// ถ้าข้อมูลอยู่ในรูป array โดยตรง\nif (Array.isArray(inputData)) {\n  urls = inputData;\n} \n// ถ้าข้อมูลอยู่ใน property ต่างๆ\nelse if (inputData.data && Array.isArray(inputData.data)) {\n  urls = inputData.data;\n} \n// ถ้าข้อมูลอยู่ในรูปแบบอื่น\nelse {\n  // ดูโครงสร้างข้อมูลจริง\n  console.log('Input data structure:', JSON.stringify(inputData, null, 2));\n  urls = Object.values(inputData).find(val => Array.isArray(val)) || [];\n}\n\n// แปลง array เป็น key-value pairs\nconst result = urls.map((url, index) => {\n  return {\n    id: index + 1,\n    topic_link: url\n  };\n});\n\nreturn result.map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -600,
+        1020
+      ],
+      "id": "df375a88-f6ae-4b9c-a4bd-f4c03dd1d81f",
+      "name": "create json key value topic"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit?gid=415211407#gid=415211407",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 415211407,
+          "mode": "list",
+          "cachedResultName": "test append_V2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit#gid=415211407"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "link": "=",
+            "id": "={{ $json.id }}",
+            "topic": "={{ $json.topic_link }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -320,
+        1020
+      ],
+      "id": "19531a68-fac8-4e65-8b84-11fc31c4033c",
+      "name": "add-update topic",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "33F6GyRpVDU9pkkz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// รับข้อมูลจาก HTML extract node\nconst inputData = $input.all()[0].json;\n\n// ตัวแปร urls อาจอยู่ในรูปแบบต่างๆ ให้ตรวจสอบก่อน\nlet urls;\n\n// ถ้าข้อมูลอยู่ในรูป array โดยตรง\nif (Array.isArray(inputData)) {\n  urls = inputData;\n} \n// ถ้าข้อมูลอยู่ใน property ต่างๆ\nelse if (inputData.data && Array.isArray(inputData.data)) {\n  urls = inputData.data;\n} \n// ถ้าข้อมูลอยู่ในรูปแบบอื่น\nelse {\n  // ดูโครงสร้างข้อมูลจริง\n  console.log('Input data structure:', JSON.stringify(inputData, null, 2));\n  urls = Object.values(inputData).find(val => Array.isArray(val)) || [];\n}\n\n// แปลง array เป็น key-value pairs\nconst result = urls.map((url, index) => {\n  return {\n    id: index + 1,\n    link: url\n  };\n});\n\nreturn result.map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -600,
+        1280
+      ],
+      "id": "7e722576-78a8-4f54-9792-cf60390c6c0a",
+      "name": "create json key value topic_link"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit?gid=415211407#gid=415211407",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 415211407,
+          "mode": "list",
+          "cachedResultName": "test append_V2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit#gid=415211407"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "link": "={{ $json.link }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -320,
+        1280
+      ],
+      "id": "001a9d9f-a606-4cb9-9165-4610b183f6ee",
+      "name": "update link",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "33F6GyRpVDU9pkkz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Step1 Read Link from main page",
+        "height": 540,
+        "width": 1120
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        940
+      ],
+      "id": "7c88f421-3b04-4573-aca5-0dcddce6c402",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        460,
+        900
+      ],
+      "id": "04cbd06f-b7be-43f5-aaeb-729384563bec",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        -140,
+        1140
+      ],
+      "id": "6b350596-8c54-459c-a0b2-b86d31dbf278",
+      "name": "Merge",
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        20,
+        1140
+      ],
+      "id": "f5cbff02-8be7-4073-bb31-51f318e986ab",
+      "name": "No Operation, do nothing2"
+    },
+    {
+      "parameters": {
+        "content": "## Step2 ดึง Content จากเว็บ",
+        "height": 360,
+        "width": 1060
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        640,
+        800
+      ],
+      "id": "6b6b1eba-6bd8-4c74-a970-72907d8ca50a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit?gid=415211407#gid=415211407",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 415211407,
+          "mode": "list",
+          "cachedResultName": "test append_V2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit#gid=415211407"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        260,
+        1140
+      ],
+      "id": "f1c86b99-03c3-416b-8b4b-53247881a0fa",
+      "name": "กำหนด execute onece ไม่งั้นค่าก่อนหน้าจะติดมาด้วย",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "33F6GyRpVDU9pkkz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=ช่วยพิจารณาข่าวเกี่ยวกับ security พร้อมจัดกลุ่มผลกระทบที่เกี่ยวข้อง และเหตุผลประกอบในแต่ละกลุ่ม\n\n<START NEWS>\n{{ $json.content }}\n<END NEWS>",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "คุณเป็นเจ้าหน้าที่ IT Security มีประสบการณ์ทำงานเกือบ 10 ปี"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        800,
+        1320
+      ],
+      "id": "89001a7c-4591-47d2-9f9d-fe0f8521b4e1",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "iapp/chinda-qwen3-4b:latest",
+        "options": {
+          "temperature": 0.6,
+          "topK": 20,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        820,
+        1540
+      ],
+      "id": "bd979b87-49e2-4cba-97c9-342500f9cf57",
+      "name": "Ollama Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "1L8RJovaeKiFJ9Q3",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit?gid=415211407#gid=415211407",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 415211407,
+          "mode": "list",
+          "cachedResultName": "test append_V2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit#gid=415211407"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Google Sheets').item.json.id }}",
+            "data": "={{ $json.text }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1320,
+        1540
+      ],
+      "id": "78c2a88c-69e3-4ed9-9f18-cf40276e49e4",
+      "name": "นำผลลัพธ์ของ AI ไปเพิ่มใน column Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "33F6GyRpVDU9pkkz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// วิธีที่ 1: ลบ <think> tag และเนื้อหาภายใน\nconst inputData = $input.all();\n\nconst processedData = inputData.map(item => {\n  // สมมติว่าข้อมูลอยู่ในฟิลด์ 'text' หรือ 'content'\n  let text = item.json.text || item.json.content || '';\n  \n  // ลบ <think>...</think> tag และเนื้อหาภายใน\n  text = text.replace(/<think>[\\s\\S]*?<\\/think>/gi, '');\n  \n  // ลบ <think> tag เปล่าๆ ที่เหลือ\n  text = text.replace(/<\\/?think>/gi, '');\n  \n  // ลบช่องว่างเกินที่อาจเกิดขึ้น\n  text = text.replace(/\\n\\s*\\n/g, '\\n').trim();\n  \n  return {\n    json: {\n      ...item.json,\n      text: text,\n      // หรือใช้ฟิลด์อื่นตามที่ต้องการ\n      // content: text\n    }\n  };\n});\n\nreturn processedData;\n\n// วิธีที่ 2: หากต้องการเก็บเฉพาะเนื้อหาภายใน <think> tag\n/*\nconst processedData = inputData.map(item => {\n  let text = item.json.text || item.json.content || '';\n  \n  // ดึงเนื้อหาภายใน <think> tag\n  const thinkMatch = text.match(/<think>([\\s\\S]*?)<\\/think>/i);\n  const thinkContent = thinkMatch ? thinkMatch[1].trim() : '';\n  \n  // ลบ <think> tag ออก\n  text = text.replace(/<think>[\\s\\S]*?<\\/think>/gi, '');\n  \n  return {\n    json: {\n      ...item.json,\n      text: text.trim(),\n      thinkContent: thinkContent // เก็บเนื้อหา think ไว้ในฟิลด์แยก\n    }\n  };\n});\n\nreturn processedData;\n*/\n\n// วิธีที่ 3: สำหรับการประมวลผลข้อมูลหลายฟิลด์\n/*\nconst processedData = inputData.map(item => {\n  const newItem = { ...item.json };\n  \n  // ประมวลผลทุกฟิลด์ที่เป็น string\n  Object.keys(newItem).forEach(key => {\n    if (typeof newItem[key] === 'string') {\n      newItem[key] = newItem[key]\n        .replace(/<think>[\\s\\S]*?<\\/think>/gi, '')\n        .replace(/<\\/?think>/gi, '')\n        .replace(/\\n\\s*\\n/g, '\\n')\n        .trim();\n    }\n  });\n  \n  return { json: newItem };\n});\n\nreturn processedData;\n*/"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        1320
+      ],
+      "id": "29c476ad-8689-42ba-9308-0ff6815e8e68",
+      "name": "remove tag think"
+    },
+    {
+      "parameters": {
+        "content": "## Step2.2 ส่ง content ไปยัง Model LLM",
+        "height": 560,
+        "width": 1060
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        640,
+        1200
+      ],
+      "id": "da063d48-6bb9-4394-ae17-fdebb491eeb5",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Scrap 1": {
+      "main": [
+        [
+          {
+            "node": "extract1_topic",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "extract1_topic_url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract3_content": {
+      "main": [
+        [
+          {
+            "node": "merge_array_content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "merge_array_content": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrap2 ดึงข้อความจาก link content": {
+      "main": [
+        [
+          {
+            "node": "Extract3_content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Scrap 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract1_topic": {
+      "main": [
+        [
+          {
+            "node": "create json key value topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract1_topic_url": {
+      "main": [
+        [
+          {
+            "node": "create json key value topic_link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create json key value topic": {
+      "main": [
+        [
+          {
+            "node": "add-update topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "add-update topic": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create json key value topic_link": {
+      "main": [
+        [
+          {
+            "node": "update link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update link": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Scrap2 ดึงข้อความจาก link content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing2": {
+      "main": [
+        [
+          {
+            "node": "กำหนด execute onece ไม่งั้นค่าก่อนหน้าจะติดมาด้วย",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "กำหนด execute onece ไม่งั้นค่าก่อนหน้าจะติดมาด้วย": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "remove tag think",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "นำผลลัพธ์ของ AI ไปเพิ่มใน column Data": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "remove tag think": {
+      "main": [
+        [
+          {
+            "node": "นำผลลัพธ์ของ AI ไปเพิ่มใน column Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "610a60db-293e-4556-8ccc-6ec8b36e9f23",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7af76ae12d6d5ea994102e542276d97a526c747967bfdd0ad127441fde3eddd9"
+  },
+  "id": "uRmuCIUOhUDWz9Bt",
+  "tags": []
+}
