@@ -1,0 +1,103 @@
+{
+  "name": "การบ้าน1 main workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        40
+      ],
+      "id": "409e3375-04ab-4e29-90bd-a1c8c6bdd3be",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "b7OlLShFZ0R5jVVo",
+          "mode": "list",
+          "cachedResultName": "การบ้าน 1 scrapping from page1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        40
+      ],
+      "id": "f34e8289-a75a-42a9-ba2f-a0ca7fd66ec1",
+      "name": "Execute Workflow"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3e3e85ba-93cb-4f5c-8eae-922e4d44e306",
+              "name": "my_URL",
+              "value": "https://thehackernews.com/",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        40
+      ],
+      "id": "f83924e1-14d3-4cb9-9124-37a22181cda2",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a40a5b8e-253c-4edb-8c04-7206d8caad88",
+  "meta": {
+    "instanceId": "7af76ae12d6d5ea994102e542276d97a526c747967bfdd0ad127441fde3eddd9"
+  },
+  "id": "AyNQgL5dMieTVpJf",
+  "tags": []
+}
