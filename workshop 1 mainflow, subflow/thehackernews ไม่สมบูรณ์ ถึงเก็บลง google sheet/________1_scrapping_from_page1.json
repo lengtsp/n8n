@@ -1,0 +1,576 @@
+{
+  "name": "การบ้าน 1 scrapping from page1",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        380
+      ],
+      "id": "e6a9cfa5-4561-42fe-aee2-2601f86906d6",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.my_URL }}",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"User-Agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36\",\n  \"Accept\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\",\n  \"Accept-Encoding\": \"gzip, deflate, br\",\n  \"Accept-Language\": \"en-US,en;q=0.9\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -800,
+        380
+      ],
+      "id": "0e5e5756-5df3-4b13-8311-1ec5e119c9a2",
+      "name": "Scrap 1"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "cssSelector": "a[class=\"story-link\"]",
+              "returnValue": "attribute",
+              "attribute": "href",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -640,
+        380
+      ],
+      "id": "d53a1019-c656-4b83-b1af-4d55bcd459ac",
+      "name": "extract1_url_to_json"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -180,
+        160
+      ],
+      "id": "6f19aecb-7905-4bd2-b266-8b40649ec3ba",
+      "name": "Loop Link ข่าวจากหน้าหลัก"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit?gid=1806566961#gid=1806566961",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1806566961,
+          "mode": "list",
+          "cachedResultName": "test append",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit#gid=1806566961"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "id": "={{ $json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        40,
+        400
+      ],
+      "id": "7e856a91-a9af-49ea-b9c1-3aa7b7ec734c",
+      "name": "นำ link insert ลง sheet ทีละรายการ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "33F6GyRpVDU9pkkz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "cssSelector": ".story-title a",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        540,
+        260
+      ],
+      "id": "17b99a0d-6f61-4a4a-a592-c378ee793c4d",
+      "name": "Extract2_title"
+    },
+    {
+      "parameters": {
+        "jsCode": "// รับข้อมูลจาก HTML extract node\nconst inputData = $input.all()[0].json;\n\n// ตัวแปร urls อาจอยู่ในรูปแบบต่างๆ ให้ตรวจสอบก่อน\nlet urls;\n\n// ถ้าข้อมูลอยู่ในรูป array โดยตรง\nif (Array.isArray(inputData)) {\n  urls = inputData;\n} \n// ถ้าข้อมูลอยู่ใน property ต่างๆ\nelse if (inputData.data && Array.isArray(inputData.data)) {\n  urls = inputData.data;\n} \n// ถ้าข้อมูลอยู่ในรูปแบบอื่น\nelse {\n  // ดูโครงสร้างข้อมูลจริง\n  console.log('Input data structure:', JSON.stringify(inputData, null, 2));\n  urls = Object.values(inputData).find(val => Array.isArray(val)) || [];\n}\n\n// แปลง array เป็น key-value pairs\nconst result = urls.map((url, index) => {\n  return {\n    id: index + 1,\n    link: url\n  };\n});\n\nreturn result.map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        380
+      ],
+      "id": "3d171311-0c87-4875-a6ad-ddb41d5e88e2",
+      "name": "แปลง Link1 รวมทั้งหมดให้เป็น Key - Value"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1240,
+        580
+      ],
+      "id": "2e25add3-8b61-4fe5-8566-1dfb288671ca",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit?gid=1806566961#gid=1806566961",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1806566961,
+          "mode": "list",
+          "cachedResultName": "test append",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit#gid=1806566961"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "topic": "={{ $json[''][0] }}",
+            "id": "={{ $('นำ link insert ลง sheet ทีละรายการ').item.json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        760,
+        260
+      ],
+      "id": "93bff54e-5dbd-498c-8da0-8fe63cb78058",
+      "name": "topic to sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "33F6GyRpVDU9pkkz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit?gid=1806566961#gid=1806566961",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1806566961,
+          "mode": "list",
+          "cachedResultName": "test append",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mql3Mw4mS4YX5NROShfSVBnoWTJzGYK5N1gcyvFHR5o/edit#gid=1806566961"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('นำ link insert ลง sheet ทีละรายการ').item.json.id }}",
+            "content": "={{ $json.merged_content }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        940,
+        560
+      ],
+      "id": "d1e509da-b8d1-4e8b-9d1b-03a2254a1ab3",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "33F6GyRpVDU9pkkz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "cssSelector": ".post p",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        540,
+        560
+      ],
+      "id": "97abe4e5-ace7-40ac-a472-cc74c04251ed",
+      "name": "Extract3_content"
+    },
+    {
+      "parameters": {
+        "jsCode": "// วิธีที่ 2: หากข้อมูลมาจาก Extract3_content node\nconst allItems = $input.all();\nlet mergedText = '';\n\nallItems.forEach(item => {\n  // ลองดูโครงสร้างข้อมูลจริง\n  console.log('Item structure:', JSON.stringify(item.json, null, 2));\n  \n  // หากข้อมูลเป็น array ที่ไม่มีชื่อ key\n  const keys = Object.keys(item.json);\n  keys.forEach(key => {\n    if (Array.isArray(item.json[key])) {\n      mergedText += item.json[key].join('\\n') + '\\n';\n    }\n  });\n});\n\nreturn [\n  {\n    json: {\n      merged_content: mergedText.trim()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        560
+      ],
+      "id": "4f4d8553-2853-46ec-b25b-5924f73c03b2",
+      "name": "merge_array_content"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        400
+      ],
+      "id": "ea409441-60b0-4844-b15a-118808c89987",
+      "name": "Scrap2 ดึงข้อความจาก link content"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"my_URL\": \"https://thehackernews.com/search?updated-max=2025-06-04T17:43:00%2B05:30&max-results=12\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -980,
+        380
+      ],
+      "id": "7266f9b5-e191-471c-94ce-18cf0eb54e75",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Scrap 1": {
+      "main": [
+        [
+          {
+            "node": "extract1_url_to_json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract1_url_to_json": {
+      "main": [
+        [
+          {
+            "node": "แปลง Link1 รวมทั้งหมดให้เป็น Key - Value",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Link ข่าวจากหน้าหลัก": {
+      "main": [
+        [],
+        [
+          {
+            "node": "นำ link insert ลง sheet ทีละรายการ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "นำ link insert ลง sheet ทีละรายการ": {
+      "main": [
+        [
+          {
+            "node": "Scrap2 ดึงข้อความจาก link content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract2_title": {
+      "main": [
+        [
+          {
+            "node": "topic to sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "แปลง Link1 รวมทั้งหมดให้เป็น Key - Value": {
+      "main": [
+        [
+          {
+            "node": "Loop Link ข่าวจากหน้าหลัก",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Loop Link ข่าวจากหน้าหลัก",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "topic to sheet": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Extract3_content": {
+      "main": [
+        [
+          {
+            "node": "merge_array_content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "merge_array_content": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrap2 ดึงข้อความจาก link content": {
+      "main": [
+        [
+          {
+            "node": "Extract2_title",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract3_content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Scrap 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3c4de50e-72e3-44d5-bba0-09e37b0a47fc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7af76ae12d6d5ea994102e542276d97a526c747967bfdd0ad127441fde3eddd9"
+  },
+  "id": "b7OlLShFZ0R5jVVo",
+  "tags": []
+}
