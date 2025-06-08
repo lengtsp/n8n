@@ -1,0 +1,67 @@
+version: '3.9'
+
+volumes:
+  db_storage:
+  n8n_storage:
+  redis_data:
+  qdrant_data:
+
+services:
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=P@ssw0rd
+      - POSTGRES_DB=n8n
+    volumes:
+      - db_storage:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d n8n"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    ports:
+      - "5433:5432"
+
+  redis:
+    image: redis:latest
+    container_name: my_redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6381:6379"
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: my_qdrant
+    environment:
+      QDRANT__SERVICE__HTTP_PORT: 6333
+    volumes:
+      - qdrant_data:/qdrant/storage
+    ports:
+      - "6333:6333"
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    restart: always
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=admin
+      - DB_POSTGRESDB_PASSWORD=P@ssw0rd
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_PORT=5678
+      - NODE_ENV=production
+      - N8N_HOST=localhost
+      - N8N_SECURE_COOKIE=false  # ✅ เพิ่มบรรทัดนี้
+    ports:
+      - "5679:5678"
+    volumes:
+      - n8n_storage:/home/node/.n8n
+    depends_on:
+      postgres:
+        condition: service_healthy
