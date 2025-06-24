@@ -1,0 +1,215 @@
+{
+  "name": "การบ้าน 1 scrapping https://www.thaicert.or.th/category/cybernews/ copy",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -940,
+        640
+      ],
+      "id": "ebc10e33-d1de-4bc7-b239-7514c461cbf2",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.my_URL }}",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"User-Agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36\",\n  \"Accept\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\",\n  \"Accept-Encoding\": \"gzip, deflate, br\",\n  \"Accept-Language\": \"en-US,en;q=0.9\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -580,
+        640
+      ],
+      "id": "1be8a29d-b66d-42da-9d2c-ad3905c402d7",
+      "name": "Scrap 1"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"my_URL\": \"https://www.thaicert.or.th/category/cybernews/\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -760,
+        640
+      ],
+      "id": "51ee2de5-118d-4ce7-b222-96d886ed7437",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "dataPropertyName": "=data",
+        "extractionValues": {
+          "values": [
+            {
+              "cssSelector": "h2.entry-title a",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -360,
+        560
+      ],
+      "id": "d152e06a-800e-419d-8086-64efad393d69",
+      "name": "extract_topic",
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "cssSelector": "h2.entry-title a",
+              "returnValue": "attribute",
+              "attribute": "href",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -360,
+        760
+      ],
+      "id": "947b7966-227f-4bae-87d2-001bfc0a3767",
+      "name": "extract_url",
+      "executeOnce": true,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -120,
+        660
+      ],
+      "id": "88a5bd43-dc46-4510-bc20-2271963eed92",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// โค้ดนี้จะทำงานได้อย่างถูกต้องเมื่อเชื่อม 2 Inputs เข้าที่ Code Node โดยตรง\nconst topicItems = $items(\"extract_topic\");\nconst urlItems = $items(\"extract_url\");\n\nconst topics = Object.values(topicItems[0].json)[0];\nconst urls = Object.values(urlItems[0].json)[0];\n\n// ... (ส่วนที่เหลือของโค้ดเหมือนเดิม) ...\n\nif (!Array.isArray(topics) || !Array.isArray(urls) || topics.length !== urls.length) {\n  throw new Error(\"ข้อมูล topic และ url ไม่ถูกต้อง หรือมีจำนวนไม่เท่ากัน\");\n}\n\nconst mergedResult = [];\n\nfor (let i = 0; i < topics.length; i++) {\n  mergedResult.push({\n    id: i,\n    topic: topics[i],\n    url: urls[i],\n  });\n}\n\nreturn mergedResult.map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        660
+      ],
+      "id": "c7835188-0a03-4f8a-b6ee-4da669112883",
+      "name": "Code กำหนด execute once",
+      "executeOnce": true,
+      "alwaysOutputData": false
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Scrap 1": {
+      "main": [
+        [
+          {
+            "node": "extract_topic",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "extract_url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Scrap 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract_topic": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract_url": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code กำหนด execute once",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code กำหนด execute once": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e849a060-f051-4b6e-a358-53c0d7e4a2bc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7af76ae12d6d5ea994102e542276d97a526c747967bfdd0ad127441fde3eddd9"
+  },
+  "id": "PLbUqpphOfsvvcE8",
+  "tags": []
+}
